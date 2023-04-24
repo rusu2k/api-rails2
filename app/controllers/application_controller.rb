@@ -1,6 +1,8 @@
 class ApplicationController < ActionController::API
     include Pundit::Authorization
     include ActionController::MimeResponds
+    
+    before_action :set_paper_trail_whodunnit
 
     respond_to :json
 
