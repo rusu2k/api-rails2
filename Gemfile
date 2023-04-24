@@ -35,8 +35,14 @@ group :development do
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
 end
+gem 'pundit-matchers', '~> 2.0'
 
 
 gem "factory_bot", "~> 6.2"
 
 gem "pundit", "~> 2.3"
+
+gem 'acts_as_paranoid'
+
+gem 'paper_trail'
+

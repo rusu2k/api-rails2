@@ -24,6 +24,7 @@ def index
     if !params[:id].nil?
     
       board = Board.find_by(id: params[:id], user_id: current_user.id)
+      authorize board
     end
 
 
@@ -46,8 +47,7 @@ def index
     #board = Board.new(board_params)
     #board.user_id = current_user.id
 
-    puts "CREATE"
-    puts board.inspect
+    authorize board
     
     if board.save
       render json: board, status: :created
@@ -61,17 +61,26 @@ def index
     check_auth
 
     board = Board.find_by(id: params[:id])
+
+    
+    
     if board
       # Check
       if board.user_id == current_user.id
+        begin
+          authorize board
+          success = board.update(title: params[:title])
 
-        success = board.update(title: params[:title])
+          if success
+            render json: "Board Record Updated Successfully"
+          elsif board.errors.present?
+            render json: {errors: board.errors}, status: :unprocessable_entity
+          end
 
-        if success
-          render json: "Board Record Updated Successfully"
-        elsif board.errors.present?
-          render json: {errors: board.errors}, status: :unprocessable_entity
+        rescue Pundit::NotAuthorizedError => e
+          render json: { error: e.message }, status: :unauthorized
         end
+        
 
       else
         render json: {
@@ -91,11 +100,21 @@ def index
     check_auth
 
     board = Board.find_by(id: params[:id])
+
+    
     if board
       # Check
       if board.user_id == current_user.id
-        board.destroy
-        render json: "Board Has Been Deleted"
+        begin
+          authorize board
+          board.destroy
+          render json: "Board Has Been Deleted"
+        rescue Pundit::NotAuthorizedError => e
+          render json: { error: e.message }, status: :unauthorized
+        end
+        
+        
+        
       else
         render json: {
         error: "Board not yours!"

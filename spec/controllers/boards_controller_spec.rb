@@ -2,6 +2,9 @@ require "rails_helper"
 
 
 RSpec.describe BoardsController, type: :controller do
+  before do
+    allow(controller).to receive(:authorize).and_return(true)
+  end
     describe "GET #index" do
       
         context "when user is not authenticated" do
@@ -25,9 +28,7 @@ RSpec.describe BoardsController, type: :controller do
                 board = FactoryBot.create(:board, user_id: user.id)
                 board2 = FactoryBot.create(:board, user_id: user.id)
                 get :index
-                puts response.body
                 boards = JSON.parse(response.body)
-                puts boards
                 expect(boards.length).to eq(2)
                 expect(boards.first["user_id"]).to eq(user.id)
             end
