@@ -3,27 +3,30 @@ require 'active_support/core_ext'
 
 class StoriesRetriever
 
-    def filter_order(stories, statuses:, dates:, order_column: :title, order_type: :asc)
-        return unless stories.present?
+    attr_reader :stories
+    
+    def initialize(column_id)
+        raise "Column ID Missing!" if column_id.blank?
+        @stories = load_stories(column_id)
+    end
 
-        #stories = load_stories(column_id)
+    def filter_order(statuses:, dates:, order_column: :title, order_type: :asc)
+        return [] unless @stories.present?
 
-        puts stories.inspect
-        stories = stories.where(status: statuses) if statuses.present?
-        stories = stories.where(due_date: dates) if dates.present?
+        filtered_stories = @stories
 
-        order_column ||= :title
-        order_type ||= :asc
+        filtered_stories = filtered_stories.where(status: statuses) if statuses.present?
+        filtered_stories = filtered_stories.where(due_date: dates) if dates.present?
+        filtered_stories = filtered_stories.reorder(order_column => order_type) if order_column.present? && order_type.present?
 
-        stories = stories.reorder(order_column => order_type)
-
-        stories
+        filtered_stories
 
     end
 
     def load_stories(column_id)
         Column.find_by(id: column_id).stories
     end
+
 
 
     def filter_by_status_and_date(column_id, statuses: , dates: )

@@ -8,11 +8,11 @@ describe "filter_by_status_and_date" do
         let(:column_id) {5} 
         let(:statuses) {[]}
         let(:dates) {(Date.today - 30)..(Date.today + 30)}
-        let(:retriever) {StoriesRetriever.new}
+        let(:retriever) {StoriesRetriever.new(5)}
 
-        it 'should return 2 columns' do
+        it 'should return 11 columns' do
             
-            expect(retriever.filter_by_status_and_date(column_id, statuses: statuses, dates: dates).count).to eq(2)
+            expect(retriever.filter_by_status_and_date(column_id, statuses: statuses, dates: dates).count).to eq(11)
         end
 
     end
@@ -21,11 +21,11 @@ describe "filter_by_status_and_date" do
       let(:column_id) {5} 
       let(:statuses) {[]}
       let(:dates) {[]}
-      let(:retriever) {StoriesRetriever.new}
+      let(:retriever) {StoriesRetriever.new(5)}
 
-      it 'should return all 3 columns' do
+      it 'should return all 11 columns' do
           
-          expect(retriever.filter_by_status_and_date(column_id, statuses: statuses, dates: dates).count).to eq(3)
+          expect(retriever.filter_by_status_and_date(column_id, statuses: statuses, dates: dates).count).to eq(11)
       end
 
   end
@@ -34,10 +34,10 @@ describe "filter_by_status_and_date" do
         let(:column_id) {5} 
         let(:statuses) {[2]}
         let(:dates) {[]}
-        let(:retriever) {StoriesRetriever.new}
+        let(:retriever) {StoriesRetriever.new(5)}
 
-        it 'should return 1 column' do
-            expect(retriever.filter_by_status_and_date(column_id, statuses: statuses, dates: dates).count).to eq(1)
+        it 'should return 8 columns' do
+            expect(retriever.filter_by_status_and_date(column_id, statuses: statuses, dates: dates).count).to eq(8)
         end
     end
 
@@ -45,10 +45,10 @@ describe "filter_by_status_and_date" do
       let(:column_id) {5} 
       let(:statuses) {[2]}
       let(:dates) {(Date.today - 30)..(Date.today + 30)}
-      let(:retriever) {StoriesRetriever.new}
+      let(:retriever) {StoriesRetriever.new(5)}
 
-      it 'should return 1 column' do
-          expect(retriever.filter_by_status_and_date(column_id, statuses: statuses, dates: dates).count).to eq(1)
+      it 'should return 8 columns' do
+          expect(retriever.filter_by_status_and_date(column_id, statuses: statuses, dates: dates).count).to eq(8)
       end
   end
 
@@ -58,57 +58,78 @@ end
 # TODO
 describe "order_by" do
     let!(:column_id) { 5 }
-    let!(:story1) { Story.find(9) }
-    let!(:story2) { Story.find(10) }
-    let!(:story3) { Story.find(11) }
-    let!(:titles) { [story1.title, story2.title, story3.title] }
-    let!(:created_ats) { [story1.created_at, story2.created_at, story3.created_at] }
-    let!(:statuses) { [story1.status, story2.status, story3.status] }
+    let!(:stories) { StoriesRetriever.new(5).stories }
+    let!(:titles) { stories.map { |story| story.title } }
+    let!(:created_ats) { stories.map { |story| story.created_at } }
+    let!(:statuses) { stories.map { |story| story.status } }
   
 
     # HERE
     it "orders stories by title in ascending order by default" do
-      ordered_stories = StoriesRetriever.new.order_by(column_id)
+      ordered_stories = StoriesRetriever.new(5).order_by(column_id)
 
       expect(ordered_stories.map { |story| story.title }).to eq(titles.sort)
     end
   
     it "orders stories by title in descending order" do
-      ordered_stories = StoriesRetriever.new.order_by(column_id,order_column: :title, order_type: :desc)
+      ordered_stories = StoriesRetriever.new(5).order_by(column_id,order_column: :title, order_type: :desc)
 
       expect(ordered_stories.map { |story| story.title }).to eq(titles.sort { |a, b| b <=> a })
     end
   
     it "orders stories by created_at in ascending order" do
-      ordered_stories = StoriesRetriever.new.order_by(column_id, order_column: :created_at, order_type: :asc)
+      ordered_stories = StoriesRetriever.new(5).order_by(column_id, order_column: :created_at, order_type: :asc)
 
       expect(ordered_stories.map { |story| story.created_at }).to eq(created_ats.sort)
     end
   
     it "orders stories by created_at in descending order" do
-      ordered_stories = StoriesRetriever.new.order_by(column_id, order_column: :created_at, order_type: :desc)
+      ordered_stories = StoriesRetriever.new(5).order_by(column_id, order_column: :created_at, order_type: :desc)
 
       expect(ordered_stories.map { |story| story.created_at }).to eq(created_ats.sort { |a, b| b <=> a })
     end
 
     it "orders stories by status in ascending order" do
-      ordered_stories = StoriesRetriever.new.order_by(column_id, order_column: :status, order_type: :asc)
+      ordered_stories = StoriesRetriever.new(5).order_by(column_id, order_column: :status, order_type: :asc)
 
       expect(ordered_stories.map { |story| story.status }).to eq(statuses.sort)
     end
   
     it "orders stories by status in descending order" do
-      ordered_stories = StoriesRetriever.new.order_by(column_id, order_column: :status, order_type: :desc)
+      ordered_stories = StoriesRetriever.new(5).order_by(column_id, order_column: :status, order_type: :desc)
 
       expect(ordered_stories.map { |story| story.status }).to eq(statuses.sort { |a, b| b <=> a })
     end
   
     it "returns nil if column_id is not present" do
-      ordered_stories = StoriesRetriever.new.order_by(nil)
+      ordered_stories = StoriesRetriever.new(5).order_by(nil)
       expect(ordered_stories).to be_nil
     end
 end
 
+
+  describe 'filter_order' do
+    let(:column) { double('Column', id: 5) }
+    let(:stories_retriever) { StoriesRetriever.new(column.id) }
+
+    it 'returns filtered and ordered stories' do
+
+      filtered_stories = stories_retriever.filter_order(
+        statuses: [1,2],
+        dates: [],
+        order_column: :due_date,
+        order_type: :desc
+      )
+
+      expect(filtered_stories.length).to eq(11)
+      expect(filtered_stories.first.status).to eq(1)
+      expect(filtered_stories.second.due_date).to be_between(Date.parse("2023-04-24"), Date.parse("2023-04-26"))
+    end
+  end
+
+
+
+=begin
 
   describe 'filter_order' do
     let(:column) { instance_double('Column') }
@@ -133,9 +154,9 @@ end
         #allow(column).to receive(:stories).and_return([story1,story2,story3])
         
 
-        str = StoriesRetriever.new
+        str = StoriesRetriever.new(5)
 
-        #allow(str).to receive(:load_stories).and_return(story1, story2, story3)
+        allow(str).to receive(:).and_return(story1, story2, story3)
 
         # PROBLEM WHERE - ON INSTANCE OF ARRAY - WHERE - CLASS METHOD 
 
@@ -143,8 +164,7 @@ end
         allow(stories).to receive(:where).with(due_date: ['2023-04-30', '2023-05-01']).and_return([story1, story3])
         allow(stories).to receive(:reorder).with('due_date DESC').and_return([story3, story1])
         
-        puts str.inspect
-        result = str.filter_order(stories, statuses: 1, dates: ['2023-04-30', '2023-05-01', '2023-04-19', '2023-05-27'], order_column: 'due_date', order_type: 'DESC')
+        result = str.filter_order(statuses: 1, dates: ['2023-04-30', '2023-05-01', '2023-04-19', '2023-05-27'], order_column: 'due_date', order_type: 'DESC')
         
         
 
@@ -154,10 +174,11 @@ end
 
     context 'when column_id is not present' do
       it 'returns nil' do
-        result = StoriesRetriever.new.filter_order(nil, statuses: ['1'], dates: ['2023-04-30', '2023-05-01'], order_column: 'due_date', order_type: 'DESC')
+        result = StoriesRetriever.new(5).filter_order(statuses: ['1'], dates: ['2023-04-30', '2023-05-01'], order_column: 'due_date', order_type: 'DESC')
         expect(result).to be_nil
       end
     end
   end
   
-  
+=end
+

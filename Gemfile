@@ -23,7 +23,8 @@ gem "rack-cors"
 gem "devise"
 
 gem "rspec"
-
+gem "rspec-rails"
+gem 'factory_bot_rails'
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
@@ -35,3 +36,7 @@ group :development do
   # gem "spring"
 end
 
+
+gem "factory_bot", "~> 6.2"
+
+gem "pundit", "~> 2.3"
